@@ -20,9 +20,11 @@ public class Clock extends View {
 	private Drawable mHourHand; // 时针
 	private Drawable mMinuteHand; // 分针
 	private Drawable mDial; // 表盘背景
-	
+
 	private Drawable mPoint;
-	
+
+	private Drawable mCenter;
+
 	private int mDialWidth; // 表盘宽度
 	private int mDialHeight; // 表盘高度
 	private boolean mAttached; // 附着状态
@@ -42,14 +44,16 @@ public class Clock extends View {
 	public Clock(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		Resources r = this.getContext().getResources();
-		mDial = r.getDrawable(R.drawable.clock); // 加载表盘资源
-		mHourHand = r.getDrawable(R.drawable.hour_hand);
-		mMinuteHand = r.getDrawable(R.drawable.minute_hand);
+		mDial = r.getDrawable(R.drawable.clock_face2); // 加载表盘资源
+		mHourHand = r.getDrawable(R.drawable.hl);
+		mMinuteHand = r.getDrawable(R.drawable.ml);
 		mCalendar = new Time(); // 获取当前系统时间
-		mDialWidth = mDial.getIntrinsicWidth() + 200; // 获取表盘图片的宽度
-		mDialHeight = mDial.getIntrinsicHeight() + 200; // 高度，同上
-		
-		mPoint = r.getDrawable(R.drawable.point);
+		mDialWidth = mDial.getIntrinsicWidth(); // 获取表盘图片的宽度
+		mDialHeight = mDial.getIntrinsicHeight(); // 高度，同上
+
+		mPoint = r.getDrawable(R.drawable.onetimealarm);
+
+		mCenter = r.getDrawable(R.drawable.center);
 	}
 
 	@Override
@@ -110,10 +114,10 @@ public class Clock extends View {
 		if (changed) {
 			mChanged = false;
 		}
-		int availableWidth = this.getWidth();
-		int availableHeight = this.getHeight();
-		int x = availableWidth / 2;
-		int y = availableHeight / 2;
+		int availableWidth = this.getWidth() - 100;
+		int availableHeight = this.getHeight() - 100;
+		int x = this.getWidth() / 2;
+		int y = this.getHeight() / 2;
 		final Drawable dial = mDial;
 		int w = dial.getIntrinsicWidth();
 		int h = dial.getIntrinsicHeight();
@@ -151,20 +155,33 @@ public class Clock extends View {
 		}
 		minuteHand.draw(canvas);
 		canvas.restore();
-		if (scaled) {
-			canvas.restore();
-		}
-		
+
 		final Drawable pointDra = mPoint;
 		if (changed) {
 			w = pointDra.getIntrinsicWidth();
 			h = pointDra.getIntrinsicHeight();
-			pointDra.setBounds(x - (w / 2) +100, y - (h / 2)+100, x + (w / 2)+100, y
-					+ (h / 2)+100);
+			canvas.rotate(mHour / 12.0f * 360.0f, x, y);
+			pointDra.setBounds(x - (w / 2), y - (h / 2), x + (w / 2), y
+					+ (h / 2));
 		}
 		pointDra.draw(canvas);
 		canvas.restore();
-		
+		canvas.save();
+		final Drawable centerDra = mCenter;
+		w = centerDra.getIntrinsicWidth();
+		h = centerDra.getIntrinsicHeight();
+		centerDra.setBounds(x - (w / 2), y - (h / 2), x + (w / 2), y + (h / 2));
+		centerDra.draw(canvas);
+		canvas.restore();
+
+		if (scaled) {
+			canvas.restore();
+		}
+
+	}
+
+	private float getHourRotation(float hour) {
+		return (hour * 360 / 12);
 	}
 
 	private void onTimeChanged() { // 获取时间改变，计算当前的时分秒
